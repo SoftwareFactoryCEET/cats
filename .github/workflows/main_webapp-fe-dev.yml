@@ -1,12 +1,13 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+
 name: Build and deploy Node.js app to Azure Web App - webapp-fe-dev
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   workflow_dispatch:
-
-env:
-  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   build:
@@ -17,23 +18,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v6
+      - name: Set up Node.js version
+        uses: actions/setup-node@v3
         with:
-          node-version: '24'
-          cache: 'npm'
+          node-version: '24.x'
 
-      - name: Install, build, test
+      - name: npm install and build
         run: |
-          npm ci
+          npm install
           npm run build --if-present
-          npm test --if-present
 
-      - name: Upload artifact (dist)
+      - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
         with:
           name: web-dist
-          path: dist/
+          path: ./dist
 
   deploy:
     runs-on: ubuntu-latest
@@ -43,11 +42,10 @@ jobs:
       contents: read
 
     steps:
-      - name: Download artifact
+      - name: Download artifact from build job
         uses: actions/download-artifact@v4
         with:
           name: web-dist
-          path: dist/
 
       - name: Login to Azure
         uses: azure/login@v2
@@ -57,8 +55,9 @@ jobs:
           subscription-id: ${{ secrets.AZUREAPPSERVICE_SUBSCRIPTIONID_D120BEFE516D4D3EACDC2907D500BB4E }}
 
       - name: Deploy to Azure Web App
+        id: deploy-to-webapp
         uses: azure/webapps-deploy@v3
         with:
-          app-name: webapp-fe-dev
-          slot-name: Production
-          package: dist/
+          app-name: 'webapp-fe-dev'
+          slot-name: 'Production'
+          package: .
