@@ -12,6 +12,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: production
     permissions:
       contents: read
 
@@ -24,6 +25,8 @@ jobs:
           node-version: '24.x'
 
       - name: npm install and build
+        env:
+          VITE_AZURE_STORAGE_URL: ${{ vars.VITE_AZURE_STORAGE_URL }}
         run: |
           npm install
           npm run build --if-present
